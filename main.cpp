@@ -3,8 +3,10 @@
 #include <iostream>
 #include <string_view>
 #include <limits>
+#include <conio.h>
 
 constexpr std::array<std::string_view, 3> hands = {"Rock", "Paper", "Scissor"};
+constexpr std::array<std::string_view, 3> menuChoices = {"Scores", "Play Game", "Exit"};
 
 enum GAMERESULT {
     WIN,
@@ -18,6 +20,12 @@ enum CHOICE {
     SCISSOR,
 };
 
+enum MAIN_MENU {
+    SCORE,
+    GAME,
+    EXIT
+};
+
 constexpr int OFFSET = 1;
 
 int robotDecision() {
@@ -29,7 +37,14 @@ int robotDecision() {
 
     return randomNumber;
 }
-void printChoose(const int offset = 0) {
+
+void printMainMenuChoose(const int offset = 0) {
+    for (int i = 0; i < menuChoices.size(); i++) {
+        std::cout << (i+offset) << ". " << menuChoices[i] << std::endl;
+    }
+}
+
+void printHandChoose(const int offset = 0) {
     for (int i = 0; i < hands.size(); i++) {
         std::cout << (i + offset) << ". " << hands[i] << std::endl;
     }
@@ -62,23 +77,63 @@ GAMERESULT gameDecision(const CHOICE user, const CHOICE robot) {
 
 int main() {
     std::cout << "Welcome to ROCK PAPER SCISSOR" << std::endl;
-    printChoose(OFFSET);
-    std::cout << "Pick a choose: ";
-    const auto userChoice = static_cast<CHOICE>(userDecision(OFFSET, hands.size()) - OFFSET);
+    int userScore = 0;
+    int robotScore = 0;
 
-    const auto robotChoice = static_cast<CHOICE>(robotDecision());
+    while (true) {
+        printMainMenuChoose(OFFSET);
+        std::cout << "Pick a choose: ";
+        const auto mainMenuChoice = static_cast<MAIN_MENU>(userDecision(OFFSET, menuChoices.size()) - OFFSET);
 
-    GAMERESULT gameResult = gameDecision(userChoice, robotChoice);
+        if (mainMenuChoice == SCORE) {
+            std::cout << "Robot: " << robotScore << std::endl <<
+                        "User: " << userScore << std::endl;
 
-    if (gameResult == WIN) {
-        std::cout << "You win!" << std::endl;
-    }else if (gameResult == DRAW) {
-        std::cout << "You draw!" << std::endl;
-    }else {
-        std::cout << "You lose!" << std::endl;
+            std::cout << "Click enter enter to exit menu: ";
+
+            do{
+                if (int key; _kbhit()) {
+                    key = _getch();
+
+                    if (key == 27) {
+                        std::cout << std::endl << std::endl << std::endl;
+                        break;
+                    }
+                }
+            }while (true);
+        }else if (mainMenuChoice == GAME){
+            do{
+                printHandChoose(OFFSET);
+                std::cout << "Pick a choose: ";
+                const auto userChoice = static_cast<CHOICE>(userDecision(OFFSET, hands.size()) - OFFSET);
+
+                const auto robotChoice = static_cast<CHOICE>(robotDecision());
+
+                GAMERESULT gameResult = gameDecision(userChoice, robotChoice);
+
+                if (gameResult == WIN) {
+                    userScore++;
+                    std::cout << "You win!" << std::endl;
+                }else if (gameResult == DRAW) {
+                    std::cout << "You draw!" << std::endl;
+                }else {
+                    robotScore++;
+                    std::cout << "You lose!" << std::endl;
+                }
+                std::cout << "Robot: " << hands[robotChoice] << std::endl <<
+                        "User: " << hands[userChoice] << std::endl;
+
+                std::cout << "\n\n";
+
+            }while (true);
+        }else if (mainMenuChoice == EXIT) {
+            std::cout << "Goodbye!" << std::endl;
+            exit(1);
+        }
     }
-    std::cout << "Robot: " << hands[robotChoice] << std::endl <<
-            "User: " << hands[userChoice] << std::endl;
+
+
+
 
     return 0;
 }
