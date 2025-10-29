@@ -8,22 +8,27 @@
 constexpr std::array<std::string_view, 3> hands = {"Rock", "Paper", "Scissor"};
 constexpr std::array<std::string_view, 3> menuChoices = {"Scores", "Play Game", "Exit"};
 
-enum GAMERESULT {
+enum GameResult {
     WIN,
     LOSE,
     DRAW
 };
 
-enum CHOICE {
+enum Choice {
     ROCK,
     PAPER,
     SCISSOR,
 };
 
-enum MAIN_MENU {
+enum MainMenu {
     SCORE,
     GAME,
     EXIT
+};
+
+enum WaitKey {
+    ENTER,
+    ESC
 };
 
 constexpr int OFFSET = 1;
@@ -63,7 +68,18 @@ int userDecision(const int low, const int high) {
     }
 }
 
-GAMERESULT gameDecision(const CHOICE user, const CHOICE robot) {
+WaitKey waitForExitKeyPress() {
+    for (;;) {
+        if (int key; _kbhit()) {
+            key = _getch();
+
+            if (key == 98) return ESC;
+            if (key == '\n' || key == '\r') return ENTER;
+        }
+    }
+}
+
+GameResult gameDecision(const Choice user, const Choice robot) {
     if (user == robot) return DRAW;
 
     if ((user ==  PAPER && robot == ROCK)||
@@ -83,33 +99,28 @@ int main() {
     while (true) {
         printMainMenuChoose(OFFSET);
         std::cout << "Pick a choose: ";
-        const auto mainMenuChoice = static_cast<MAIN_MENU>(userDecision(OFFSET, menuChoices.size()) - OFFSET);
+        const auto mainMenuChoice = static_cast<MainMenu>(userDecision(OFFSET, menuChoices.size()) - OFFSET);
 
         if (mainMenuChoice == SCORE) {
-            std::cout << "Robot: " << robotScore << std::endl <<
+
+            while (true) {
+                std::cout << "Robot: " << robotScore << std::endl <<
                         "User: " << userScore << std::endl;
 
-            std::cout << "Click enter enter to exit menu: ";
+                std::cout << "Please click the ENTER to continue or ESC key to go back to the main menu: ";
 
-            do{
-                if (int key; _kbhit()) {
-                    key = _getch();
+                if (waitForExitKeyPress() == ENTER) break;
+            }
 
-                    if (key == 27) {
-                        std::cout << std::endl << std::endl << std::endl;
-                        break;
-                    }
-                }
-            }while (true);
         }else if (mainMenuChoice == GAME){
             do{
                 printHandChoose(OFFSET);
                 std::cout << "Pick a choose: ";
-                const auto userChoice = static_cast<CHOICE>(userDecision(OFFSET, hands.size()) - OFFSET);
+                const auto userChoice = static_cast<Choice>(userDecision(OFFSET, hands.size()) - OFFSET);
 
-                const auto robotChoice = static_cast<CHOICE>(robotDecision());
+                const auto robotChoice = static_cast<Choice>(robotDecision());
 
-                GAMERESULT gameResult = gameDecision(userChoice, robotChoice);
+                GameResult gameResult = gameDecision(userChoice, robotChoice);
 
                 if (gameResult == WIN) {
                     userScore++;
@@ -123,7 +134,9 @@ int main() {
                 std::cout << "Robot: " << hands[robotChoice] << std::endl <<
                         "User: " << hands[userChoice] << std::endl;
 
-                std::cout << "\n\n";
+                std::cout << "\n\n" << "Please click the ENTER to continue or ESC key to go back to the main menu: ";
+
+                if (waitForExitKeyPress() == ESC) break;
 
             }while (true);
         }else if (mainMenuChoice == EXIT) {
@@ -131,9 +144,6 @@ int main() {
             exit(1);
         }
     }
-
-
-
 
     return 0;
 }
